@@ -82,3 +82,6 @@ MIT License
 
 - VSCode Remote SSH로 원격 개발 중
 - GitHub: https://github.com/EhEo/mistop-management-system
+- VSCode Remote SSH로 원격 개발
+- GitHub Actions Self-hosted Runner로 자동 배포
+- 배포 테스트: 2025-10-28
