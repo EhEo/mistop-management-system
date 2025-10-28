@@ -77,3 +77,8 @@
 ## 📄 라이선스
 
 MIT License
+
+## 🔧 개발 환경
+
+- VSCode Remote SSH로 원격 개발 중
+- GitHub: https://github.com/EhEo/mistop-management-system
