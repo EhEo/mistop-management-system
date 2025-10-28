@@ -30,7 +30,7 @@ jobs:
         # API 빌드
         echo "🔨 빌드 중..."
         cd /var/www/api
-        npm install --production
+        npm install
         npm run build
         
         # 서버 재시작
