@@ -1,0 +1,129 @@
+server {
+	listen 8080 default_server;
+	listen [::]:8080 default_server;
+
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+
+	# 포트 번호 노출 방지
+	port_in_redirect off;
+	absolute_redirect off;
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+	# 교육 포털 - trailing slash 있는 경로
+	location /edu/ {
+		alias /var/www/edu/;
+		index index.html index.htm;
+		try_files $uri $uri/ =404;
+	}
+
+	# 교육 포털 - trailing slash 없이 접근 시 리다이렉트
+	location = /edu {
+		# $scheme 대신 명시적으로 상대 경로 사용
+		return 301 /edu/;
+	}
+
+	# Auth 페이지 (로그인/회원가입)
+
+        # 루트 경로 HTML 파일들을 /auth/로 리다이렉트
+        location = /login.html {
+                return 301 /auth/login.html;
+        }
+        
+        location = /register.html {
+                return 301 /auth/register.html;
+        }
+        
+        location = /dashboard.html {
+                return 301 /auth/dashboard.html;
+        }
+        
+        location = /profile.html {
+                return 301 /auth/profile.html;
+        }
+        
+        location = /admin.html {
+                return 301 /auth/admin.html;
+        }
+        
+        location = /forgot-password.html {
+                return 301 /auth/forgot-password.html;
+        }
+        
+        location = /reset-password.html {
+                return 301 /auth/reset-password.html;
+        }
+
+	location /auth/ {
+		alias /var/www/auth/;
+		index login.html;
+		try_files $uri $uri/ =404;
+	}
+	
+	# Dashboard 페이지
+	
+	# 로그인 페이지 직접 접근
+	location = /login {
+		return 301 /auth/login.html;
+	}
+	
+	location = /register {
+		return 301 /auth/register.html;
+	}
+
+	# API 서비스 추가
+	location /api/ {
+		proxy_pass http://localhost:3000/;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+	
+	location = /api {
+		return 301 /api/;
+	}
+
+	# Dashboard 서비스 추가
+	location /dashboard/ {
+		proxy_pass http://localhost:3001/;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+	
+	location = /dashboard {
+		return 301 /dashboard/;
+	}
+
+	# Admin 패널 추가
+	location /admin/ {
+		proxy_pass http://localhost:3002/;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_cache_bypass $http_upgrade;
+	}
+	
+	location = /admin {
+		return 301 /admin/;
+	}
+
+}

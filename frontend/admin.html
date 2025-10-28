@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - MISTOP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input,
+        .search-bar select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-bar input:focus,
+        .search-bar select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .bulk-actions span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-user {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn-edit {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .action-btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row strong {
+            color: #333;
+        }
+
+        .info-row span {
+            color: #666;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .bulk-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>⚙️ 관리자 페이지</h1>
+                <p>사용자 관리 및 시스템 설정</p>
+            </div>
+            <div class="header-actions">
+                <button onclick="location.href='/auth/dashboard.html'" class="btn btn-secondary">대시보드</button>
+                <button onclick="logout()" class="btn btn-danger">로그아웃</button>
+            </div>
+        </div>
+
+        <div id="alertDiv"></div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 이름 또는 이메일 검색..." onkeyup="filterUsers()">
+                <select id="roleFilter" onchange="filterUsers()">
+                    <option value="">전체 역할</option>
+                    <option value="admin">관리자</option>
+                    <option value="user">일반 사용자</option>
+                </select>
+                <button onclick="loadUsers()" class="btn btn-primary">🔄 새로고침</button>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="bulk-actions">
+                <span id="selectedCount">선택된 사용자: 0명</span>
+                <button onclick="bulkChangeRole('admin')" class="btn btn-success" id="bulkAdminBtn" disabled>
+                    👑 관리자로 변경
+                </button>
+                <button onclick="bulkChangeRole('user')" class="btn btn-secondary" id="bulkUserBtn" disabled>
+                    👤 일반 사용자로 변경
+                </button>
+                <button onclick="bulkDelete()" class="btn btn-danger" id="bulkDeleteBtn" disabled>
+                    🗑️ 선택 삭제
+                </button>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>이름</th>
+                            <th>이메일</th>
+                            <th>역할</th>
+                            <th>국가</th>
+                            <th>가입일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                로딩 중...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 사용자 상세 정보</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody">
+                <!-- 동적으로 채워짐 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allUsers = [];
+        let filteredUsers = [];
+        let selectedUsers = new Set();
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+
+        // 알림 표시
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertDiv');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertDiv.innerHTML = '', 5000);
+        }
+
+        // 관리자 권한 체크
+        async function checkAdminAccess() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                location.href = '/auth/login.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    location.href = '/auth/login.html';
+                    return false;
+                }
+
+                const data = await response.json();
+                const user = data.user || data;
+
+                if (user.role !== 'admin') {
+                    alert('⛔ 관리자 권한이 필요합니다.');
+                    location.href = '/auth/dashboard.html';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                alert('인증 오류가 발생했습니다.');
+                location.href = '/auth/login.html';
+                return false;
+            }
+        }
+
+        // 사용자 목록 로드
+        async function loadUsers() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                location.href = '/auth/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        showAlert('관리자 권한이 필요합니다', 'error');
+                        setTimeout(() => location.href = '/auth/dashboard.html', 2000);
+                        return;
+                    }
+                    throw new Error('사용자 목록 로드 실패');
+                }
+
+                const data = await response.json();
+                allUsers = data.users || [];
+                filteredUsers = [...allUsers];
+                renderUsers();
+            } catch (error) {
+                showAlert('사용자 목록을 불러올 수 없습니다', 'error');
+            }
+        }
+
+        // 사용자 필터링
+        function filterUsers() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            filteredUsers = allUsers.filter(user => {
+                const matchSearch = !searchText || 
+                    user.name.toLowerCase().includes(searchText) || 
+                    user.email.toLowerCase().includes(searchText);
+                const matchRole = !roleFilter || user.role === roleFilter;
+                return matchSearch && matchRole;
+            });
+
+            currentPage = 1;
+            renderUsers();
+        }
+
+        // 사용자 렌더링
+        function renderUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageUsers = filteredUsers.slice(start, end);
+
+            if (pageUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>사용자가 없습니다</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageUsers.map(user => `
+                <tr>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="user-checkbox" value="${user._id}" 
+                            onchange="updateSelection()" ${selectedUsers.has(user._id.toString()) ? 'checked' : ''}>
+                    </td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">
+                            ${user.role === 'admin' ? '관리자' : '일반 사용자'}
+                        </span>
+                    </td>
+                    <td>${user.country || 'N/A'}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString('ko-KR')}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn action-btn-edit" onclick="showUserDetail('${user._id}')">
+                                상세
+                            </button>
+                            <button class="action-btn action-btn-edit" onclick="toggleRole('${user._id}', '${user.role}')">
+                                역할 변경
+                            </button>
+                            <button class="action-btn action-btn-delete" onclick="deleteUser('${user._id}', '${user.name}')">
+                                삭제
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderPagination();
+        }
+
+        // 페이지네이션 렌더링
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                    onclick="goToPage(${i})">${i}</button>`;
+            }
+            pagination.innerHTML = html;
+        }
+
+        // 페이지 이동
+        function goToPage(page) {
+            currentPage = page;
+            renderUsers();
+        }
+
+        // 전체 선택 토글
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.user-checkbox').forEach(cb => {
+                cb.checked = selectAll;
+                if (selectAll) {
+                    selectedUsers.add(cb.value);
+                } else {
+                    selectedUsers.delete(cb.value);
+                }
+            });
+            updateSelection();
+        }
+
+        // 선택 업데이트
+        function updateSelection() {
+            selectedUsers.clear();
+            document.querySelectorAll('.user-checkbox:checked').forEach(cb => {
+                selectedUsers.add(cb.value);
+            });
+
+            const count = selectedUsers.size;
+            document.getElementById('selectedCount').textContent = `선택된 사용자: ${count}명`;
+            
+            const disabled = count === 0;
+            document.getElementById('bulkAdminBtn').disabled = disabled;
+            document.getElementById('bulkUserBtn').disabled = disabled;
+            document.getElementById('bulkDeleteBtn').disabled = disabled;
+        }
+
+        // 사용자 상세 정보 표시
+        function showUserDetail(userId) {
+            const user = allUsers.find(u => u._id.toString() === userId);
+            if (!user) return;
+
+            const modal = document.getElementById('userModal');
+            const modalBody = document.getElementById('modalBody');
+
+            modalBody.innerHTML = `
+                <div class="info-row">
+                    <strong>ID:</strong>
+                    <span>${user._id}</span>
+                </div>
+                <div class="info-row">
+                    <strong>이름:</strong>
+                    <span>${user.name}</span>
+                </div>
+                <div class="info-row">
+                    <strong>이메일:</strong>
+                    <span>${user.email}</span>
+                </div>
+                <div class="info-row">
+                    <strong>역할:</strong>
+                    <span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">
+                        ${user.role === 'admin' ? '관리자' : '일반 사용자'}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <strong>국가:</strong>
+                    <span>${user.country || 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                    <strong>가입일:</strong>
+                    <span>${new Date(user.createdAt).toLocaleString('ko-KR')}</span>
+                </div>
+                <div class="info-row">
+                    <strong>수정일:</strong>
+                    <span>${new Date(user.updatedAt).toLocaleString('ko-KR')}</span>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        // 역할 변경
+        async function toggleRole(userId, currentRole) {
+            const newRole = currentRole === 'admin' ? 'user' : 'admin';
+            const roleName = newRole === 'admin' ? '관리자' : '일반 사용자';
+
+            if (!confirm(`이 사용자를 ${roleName}로 변경하시겠습니까?`)) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                    loadUsers();
+                } else {
+                    showAlert(data.error || '역할 변경 실패', 'error');
+                }
+            } catch (error) {
+                showAlert('서버 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // 사용자 삭제
+        async function deleteUser(userId, userName) {
+            if (!confirm(`"${userName}" 사용자를 삭제하시겠습니까?\n이 작업은 취소할 수 없습니다.`)) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                    loadUsers();
+                } else {
+                    showAlert(data.error || '삭제 실패', 'error');
+                }
+            } catch (error) {
+                showAlert('서버 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // 대량 역할 변경
+        async function bulkChangeRole(role) {
+            if (selectedUsers.size === 0) return;
+
+            const roleName = role === 'admin' ? '관리자' : '일반 사용자';
+            if (!confirm(`선택된 ${selectedUsers.size}명을 ${roleName}로 변경하시겠습니까?`)) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch('/api/users/bulk-role', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userIds: Array.from(selectedUsers),
+                        role: role
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                    selectedUsers.clear();
+                    loadUsers();
+                } else {
+                    showAlert(data.error || '역할 변경 실패', 'error');
+                }
+            } catch (error) {
+                showAlert('서버 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // 대량 삭제
+        async function bulkDelete() {
+            if (selectedUsers.size === 0) return;
+
+            if (!confirm(`선택된 ${selectedUsers.size}명의 사용자를 삭제하시겠습니까?\n이 작업은 취소할 수 없습니다.`)) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch('/api/users/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userIds: Array.from(selectedUsers)
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                    selectedUsers.clear();
+                    loadUsers();
+                } else {
+                    showAlert(data.error || '삭제 실패', 'error');
+                }
+            } catch (error) {
+                showAlert('서버 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('token');
+                location.href = '/auth/login.html';
+            }
+        }
+
+        // 모달 외부 클릭시 닫기
+        document.getElementById('userModal').addEventListener('click', (e) => {
+            if (e.target.id === 'userModal') {
+                closeModal();
+            }
+        });
+
+        // 페이지 로드시 실행
+        (async function() {
+            const hasAccess = await checkAdminAccess();
+            if (hasAccess) {
+                loadUsers();
+            }
+        })();
+
+    </script>
+    <script src="session-timeout.js"></script>
+</body>
+</html>

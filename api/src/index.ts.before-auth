@@ -1,0 +1,192 @@
+import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { connectDB, getDB } from './db/mongodb'
+import { ObjectId } from 'mongodb'
+
+const app = new Hono()
+
+// MongoDB 연결 초기화
+connectDB().catch(console.error)
+
+// 기본 경로
+app.get('/', (c) => {
+  return c.json({ 
+    message: 'Welcome to API Service with MongoDB',
+    timestamp: new Date().toISOString(),
+    service: 'api',
+    database: 'connected'
+  })
+})
+
+// 상태 확인
+app.get('/status', (c) => {
+  return c.json({ 
+    status: 'running',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    database: 'MongoDB'
+  })
+})
+
+// ===== Users CRUD =====
+
+// 사용자 목록 조회
+app.get('/users', async (c) => {
+  try {
+    const db = await getDB()
+    const users = await db.collection('users').find().toArray()
+    return c.json({ 
+      users,
+      total: users.length
+    })
+  } catch (error) {
+    return c.json({ error: 'Failed to fetch users' }, 500)
+  }
+})
+
+// 사용자 단일 조회
+app.get('/users/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const db = await getDB()
+    const user = await db.collection('users').findOne({ _id: new ObjectId(id) })
+    
+    if (!user) {
+      return c.json({ error: 'User not found' }, 404)
+    }
+    
+    return c.json({ user })
+  } catch (error) {
+    return c.json({ error: 'Invalid user ID' }, 400)
+  }
+})
+
+// 사용자 생성
+app.post('/users', async (c) => {
+  try {
+    const body = await c.req.json()
+    const db = await getDB()
+    
+    const newUser = {
+      name: body.name,
+      email: body.email,
+      role: body.role || 'user',
+      country: body.country,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    const result = await db.collection('users').insertOne(newUser)
+    
+    return c.json({ 
+      message: 'User created successfully',
+      userId: result.insertedId,
+      user: newUser
+    }, 201)
+  } catch (error) {
+    return c.json({ error: 'Failed to create user' }, 500)
+  }
+})
+
+// 사용자 수정
+app.put('/users/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const db = await getDB()
+    
+    const updateData = {
+      ...body,
+      updatedAt: new Date()
+    }
+    
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    )
+    
+    if (result.matchedCount === 0) {
+      return c.json({ error: 'User not found' }, 404)
+    }
+    
+    return c.json({ 
+      message: 'User updated successfully',
+      modifiedCount: result.modifiedCount
+    })
+  } catch (error) {
+    return c.json({ error: 'Failed to update user' }, 500)
+  }
+})
+
+// 사용자 삭제
+app.delete('/users/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const db = await getDB()
+    
+    const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) })
+    
+    if (result.deletedCount === 0) {
+      return c.json({ error: 'User not found' }, 404)
+    }
+    
+    return c.json({ 
+      message: 'User deleted successfully'
+    })
+  } catch (error) {
+    return c.json({ error: 'Failed to delete user' }, 500)
+  }
+})
+
+// ===== Projects CRUD =====
+
+// 프로젝트 목록 조회
+app.get('/projects', async (c) => {
+  try {
+    const db = await getDB()
+    const projects = await db.collection('projects').find().toArray()
+    return c.json({ 
+      projects,
+      total: projects.length
+    })
+  } catch (error) {
+    return c.json({ error: 'Failed to fetch projects' }, 500)
+  }
+})
+
+// 프로젝트 생성
+app.post('/projects', async (c) => {
+  try {
+    const body = await c.req.json()
+    const db = await getDB()
+    
+    const newProject = {
+      name: body.name,
+      description: body.description,
+      status: body.status || 'planning',
+      country: body.country,
+      progress: body.progress || 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    const result = await db.collection('projects').insertOne(newProject)
+    
+    return c.json({ 
+      message: 'Project created successfully',
+      projectId: result.insertedId,
+      project: newProject
+    }, 201)
+  } catch (error) {
+    return c.json({ error: 'Failed to create project' }, 500)
+  }
+})
+
+const port = parseInt(process.env.PORT || '3000')
+
+console.log(`🚀 API Service starting on port ${port}`)
+
+serve({
+  fetch: app.fetch,
+  port: port
+})

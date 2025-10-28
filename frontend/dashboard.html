@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - MISTOP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            color: #333;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .profile-details h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .profile-details p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .badge-admin {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-user {
+            background: #28a745;
+            color: white;
+        }
+
+        .quick-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .action-btn .icon {
+            font-size: 24px;
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-left: 3px solid #667eea;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .activity-item .time {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .activity-item .description {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🏠 대시보드</h1>
+                <p id="welcomeMessage">환영합니다!</p>
+            </div>
+            <div class="header-actions">
+                <button onclick="location.href='/auth/profile.html'" class="btn btn-primary">프로필 관리</button>
+                <button onclick="logout()" class="btn btn-danger">로그아웃</button>
+            </div>
+        </div>
+
+        <div id="alertDiv"></div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">👥</div>
+                <div class="label">총 사용자</div>
+                <div class="value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🆕</div>
+                <div class="label">오늘 가입</div>
+                <div class="value" id="todayUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">⏰</div>
+                <div class="label">마지막 로그인</div>
+                <div class="value" id="lastLogin" style="font-size: 18px;">-</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <!-- Profile Summary -->
+            <div class="card">
+                <h2>👤 프로필 요약</h2>
+                <div class="profile-info">
+                    <div class="profile-avatar" id="avatarInitial">?</div>
+                    <div class="profile-details">
+                        <h3 id="userName">로딩 중...</h3>
+                        <p id="userEmail">-</p>
+                        <span class="badge" id="userRole">-</span>
+                        <p style="margin-top: 10px; color: #999; font-size: 12px;">
+                            가입일: <span id="userCreated">-</span>
+                        </p>
+                    </div>
+                </div>
+
+                <h3 style="margin: 25px 0 15px 0; color: #333; font-size: 18px;">📋 최근 활동</h3>
+                <ul class="activity-list" id="activityList">
+                    <li class="activity-item">
+                        <div class="time">로딩 중...</div>
+                        <div class="description">활동 내역을 불러오는 중입니다.</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2>⚡ 빠른 작업</h2>
+                <div class="quick-actions">
+                    <a href="profile.html" class="action-btn">
+                        <span class="icon">👤</span>
+                        <div>
+                            <strong>프로필 관리</strong>
+                            <p style="font-size: 12px; color: #666;">정보 수정 및 관리</p>
+                        </div>
+                    </a>
+                    <a href="profile.html#password-tab" class="action-btn">
+                        <span class="icon">🔒</span>
+                        <div>
+                            <strong>비밀번호 변경</strong>
+                            <p style="font-size: 12px; color: #666;">보안 설정</p>
+                        </div>
+                    </a>
+                    <a href="admin.html" class="action-btn" id="adminLink" style="display: none;">
+                        <span class="icon">⚙️</span>
+                        <div>
+                            <strong>관리자 페이지</strong>
+                            <p style="font-size: 12px; color: #666;">사용자 관리</p>
+                        </div>
+                    </a>
+                    <a href="#" onclick="logout(); return false;" class="action-btn">
+                        <span class="icon">🚪</span>
+                        <div>
+                            <strong>로그아웃</strong>
+                            <p style="font-size: 12px; color: #666;">안전하게 종료</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 알림 표시
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertDiv');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertDiv.innerHTML = '', 5000);
+        }
+
+        // 사용자 정보 로드
+        async function loadUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                location.href = '/auth/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('인증 실패');
+
+                const data = await response.json();
+                const user = data.user || data;
+
+                // 환영 메시지
+                document.getElementById('welcomeMessage').textContent = `${user.name}님, 환영합니다!`;
+
+                // 프로필 정보
+                document.getElementById('userName').textContent = user.name || 'N/A';
+                document.getElementById('userEmail').textContent = user.email || 'N/A';
+                document.getElementById('userCreated').textContent = user.createdAt ? 
+                    new Date(user.createdAt).toLocaleDateString('ko-KR') : 'N/A';
+
+                // 아바타 이니셜
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                document.getElementById('avatarInitial').textContent = initial;
+
+                // 역할 배지
+                const roleElement = document.getElementById('userRole');
+                if (user.role === 'admin') {
+                    roleElement.textContent = '관리자';
+                    roleElement.className = 'badge badge-admin';
+                    document.getElementById('adminLink').style.display = 'flex';
+                } else {
+                    roleElement.textContent = '일반 사용자';
+                    roleElement.className = 'badge badge-user';
+                }
+
+                // 마지막 로그인 시간
+                document.getElementById('lastLogin').textContent = new Date().toLocaleString('ko-KR');
+
+                // 최근 활동 (예시)
+                loadRecentActivity();
+            } catch (error) {
+                showAlert('사용자 정보를 불러올 수 없습니다', 'info');
+                setTimeout(() => location.href = '/auth/login.html', 2000);
+            }
+        }
+
+        // 통계 로드
+        async function loadStats() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('totalUsers').textContent = data.total || 0;
+                    
+                    // 오늘 가입한 사용자 계산
+                    const today = new Date().toDateString();
+                    const todayCount = data.users.filter(u => 
+                        new Date(u.createdAt).toDateString() === today
+                    ).length;
+                    document.getElementById('todayUsers').textContent = todayCount;
+                }
+            } catch (error) {
+                console.log('통계 로드 실패:', error);
+            }
+        }
+
+        // 최근 활동 로드
+        async function loadRecentActivity() {
+            const activityList = document.getElementById('activityList');
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('/api/auth/activity-logs?limit=5', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.logs && data.logs.length > 0) {
+                        activityList.innerHTML = data.logs.map(log => {
+                            const actionIcons = {
+                                'LOGIN': '✅',
+                                'PROFILE_UPDATE': '👤',
+                                'PASSWORD_CHANGE': '🔐',
+                                'LOGOUT': '🚪'
+                            };
+                            
+                            const icon = actionIcons[log.action] || '📝';
+                            
+                            return `
+                                <li class="activity-item">
+                                    <div class="time">${new Date(log.createdAt).toLocaleString('ko-KR')}</div>
+                                    <div class="description">${icon} ${log.description}</div>
+                                </li>
+                            `;
+                        }).join('');
+                    } else {
+                        activityList.innerHTML = `
+                            <li class="activity-item">
+                                <div class="description">활동 내역이 없습니다</div>
+                            </li>
+                        `;
+                    }
+                } else {
+                    throw new Error('로그 로드 실패');
+                }
+            } catch (error) {
+                console.error('활동 로그 로드 오류:', error);
+                activityList.innerHTML = `
+                    <li class="activity-item">
+                        <div class="description">활동 내역을 불러올 수 없습니다</div>
+                    </li>
+                `;
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('token');
+                location.href = '/auth/login.html';
+            }
+        }
+
+        // 페이지 로드시 실행
+        loadUserInfo();
+        loadStats();
+    </script>
+    <script src="session-timeout.js"></script>
+</body>
+</html>
