@@ -1,0 +1,52 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 푸시될 때 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v3
+    
+    - name: 서버에 배포
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          echo "🚀 배포 시작..."
+          
+          # Git 저장소로 이동
+          cd /var/www/mistop-management-system
+          
+          # 최신 코드 가져오기
+          git pull origin main
+          
+          # API 서버 업데이트
+          echo "📦 API 서버 업데이트 중..."
+          rsync -av --exclude='node_modules' --exclude='dist' --exclude='.env' \
+            /var/www/mistop-management-system/api/ /var/www/api/
+          
+          # 프론트엔드 업데이트
+          echo "🎨 프론트엔드 업데이트 중..."
+          rsync -av --exclude='*.backup' \
+            /var/www/mistop-management-system/frontend/ /var/www/auth/
+          
+          # API 의존성 설치 및 빌드
+          echo "🔨 빌드 중..."
+          cd /var/www/api
+          npm install --production
+          npm run build
+          
+          # 서버 재시작
+          echo "🔄 서버 재시작 중..."
+          pm2 restart api
+          
+          echo "✅ 배포 완료!"
