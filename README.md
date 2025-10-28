@@ -85,3 +85,18 @@ MIT License
 - VSCode Remote SSH로 원격 개발
 - GitHub Actions Self-hosted Runner로 자동 배포
 - 배포 테스트: 2025-10-28
+1. VSCode에서 코드 수정
+   ↓
+2. Git Commit
+   ↓
+3. Git Push to GitHub
+   ↓
+4. GitHub Actions 자동 실행
+   ↓
+5. Self-hosted Runner가 서버에서 배포 실행
+   - 최신 코드 가져오기
+   - API/프론트엔드 업데이트
+   - 빌드
+   - PM2 재시작
+   ↓
+6. 배포 완료! ✅

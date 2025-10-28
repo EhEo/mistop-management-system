@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세션 타임아웃 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 세션 타임아웃 테스트</h1>
+        <p class="subtitle">세션 타임아웃 기능이 정상적으로 작동하는지 확인합니다</p>
+
+        <div class="info-box">
+            <strong>ℹ️ 테스트 방법</strong>
+            <p>1. "토큰 설정" 버튼을 클릭하여 가짜 토큰을 생성합니다</p>
+            <p>2. 30분 동안 활동이 없으면 자동 로그아웃됩니다</p>
+            <p>3. 마우스를 움직이거나 클릭하면 타이머가 리셋됩니다</p>
+            <p>4. 테스트를 위해 타임아웃 시간을 변경할 수 있습니다</p>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <div class="status-label">타임아웃 시간</div>
+                <div class="status-value" id="timeoutValue">30</div>
+                <div class="status-label">분</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">비활성 시간</div>
+                <div class="status-value" id="inactiveTime">0</div>
+                <div class="status-label">분</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">토큰 상태</div>
+                <div class="status-value" id="tokenStatus">❌</div>
+            </div>
+        </div>
+
+        <button onclick="setToken()" class="btn btn-primary">✅ 토큰 설정 (로그인 시뮬레이션)</button>
+        <button onclick="removeToken()" class="btn btn-danger">❌ 토큰 제거 (로그아웃)</button>
+        <button onclick="testQuick()" class="btn btn-secondary">⚡ 빠른 테스트 (2분)</button>
+        <button onclick="clearLog()" class="btn btn-secondary">🗑️ 로그 지우기</button>
+
+        <div class="log" id="logArea">
+            <div class="log-entry">📋 로그가 여기에 표시됩니다...</div>
+        </div>
+    </div>
+
+    <script>
+        // 원본 세션 타임아웃 설정을 저장
+        let originalTimeout = 30 * 60 * 1000;
+        let testMode = false;
+
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${timestamp}] ${message}`;
+            logArea.appendChild(entry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function updateStatus() {
+            const token = localStorage.getItem('token');
+            document.getElementById('tokenStatus').textContent = token ? '✅' : '❌';
+        }
+
+        function setToken() {
+            localStorage.setItem('token', 'test-token-' + Date.now());
+            log('✅ 토큰 설정됨 (로그인 시뮬레이션)');
+            updateStatus();
+            
+            // 페이지 새로고침하여 세션 타임아웃 초기화
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+
+        function removeToken() {
+            localStorage.removeItem('token');
+            log('❌ 토큰 제거됨 (로그아웃)');
+            updateStatus();
+        }
+
+        function testQuick() {
+            if (confirm('빠른 테스트를 위해 타임아웃을 2분으로 설정합니다. 진행하시겠습니까?')) {
+                // 세션 타임아웃을 2분으로 임시 변경
+                window.SESSION_TIMEOUT_OVERRIDE = 2 * 60 * 1000;
+                document.getElementById('timeoutValue').textContent = '2';
+                log('⚡ 빠른 테스트 모드: 타임아웃 2분으로 설정');
+                
+                // 토큰 설정 후 페이지 새로고침
+                localStorage.setItem('token', 'test-token-quick-' + Date.now());
+                setTimeout(() => location.reload(), 500);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '<div class="log-entry">📋 로그가 초기화되었습니다.</div>';
+        }
+
+        // 비활성 시간 표시 업데이트
+        setInterval(() => {
+            const token = localStorage.getItem('token');
+            if (token && window.lastActivity) {
+                const elapsed = Date.now() - window.lastActivity;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('inactiveTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+
+        // 초기 상태 업데이트
+        updateStatus();
+        
+        const token = localStorage.getItem('token');
+        if (token) {
+            log('ℹ️ 기존 토큰이 발견되었습니다. 세션 타임아웃이 활성화됩니다.');
+        } else {
+            log('ℹ️ 토큰이 없습니다. "토큰 설정" 버튼을 클릭하여 시작하세요.');
+        }
+    </script>
+
+    <!-- 세션 타임아웃 스크립트 포함 -->
+    <script>
+        // 세션 타임아웃 스크립트를 인라인으로 포함 (테스트용)
+        // 실제로는 session-timeout.js 파일을 로드해야 합니다
+        
+        // 타임아웃 오버라이드 확인
+        const SESSION_TIMEOUT = window.SESSION_TIMEOUT_OVERRIDE || (30 * 60 * 1000);
+        let timeoutId = null;
+        let lastActivity = Date.now();
+        window.lastActivity = lastActivity; // 전역으로 노출
+
+        const DEBUG_MODE = true; // 테스트 페이지이므로 디버그 모드 활성화
+
+        function resetSessionTimer() {
+            lastActivity = Date.now();
+            window.lastActivity = lastActivity;
+            
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            timeoutId = setTimeout(() => {
+                handleSessionTimeout();
+            }, SESSION_TIMEOUT);
+            
+            if (DEBUG_MODE) {
+                console.log('⏱️ 세션 타이머 리셋됨');
+                log('⏱️ 세션 타이머 리셋됨');
+            }
+        }
+
+        function handleSessionTimeout() {
+            const token = localStorage.getItem('token');
+            
+            if (token) {
+                alert('⏰ 타임아웃! 30분 동안 활동이 없어 자동 로그아웃되었습니다.');
+                log('⏰ 세션 타임아웃 발생 - 자동 로그아웃');
+                
+                localStorage.removeItem('token');
+                updateStatus();
+            }
+        }
+
+        function initSessionTimeout() {
+            const token = localStorage.getItem('token');
+            
+            if (token) {
+                log('✅ 세션 타임아웃 시스템 초기화됨');
+                console.log('✅ 세션 타임아웃 시스템 초기화됨');
+                
+                resetSessionTimer();
+                
+                const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+                
+                events.forEach(event => {
+                    document.addEventListener(event, () => {
+                        resetSessionTimer();
+                    }, true);
+                });
+                
+                // 10초마다 상태 체크 (테스트용)
+                setInterval(() => {
+                    const elapsed = Date.now() - lastActivity;
+                    const minutes = Math.floor(elapsed / 60000);
+                    
+                    if (DEBUG_MODE && minutes > 0) {
+                        console.log(`📊 비활성 시간: ${minutes}분`);
+                    }
+                    
+                    // 경고 시간 계산 (타임아웃 1분 전)
+                    const warningTime = SESSION_TIMEOUT - 60000;
+                    
+                    if (elapsed > warningTime && elapsed < SESSION_TIMEOUT) {
+                        const remaining = Math.ceil((SESSION_TIMEOUT - elapsed) / 1000);
+                        console.log(`⚠️ ${remaining}초 후 자동 로그아웃됩니다.`);
+                        log(`⚠️ ${remaining}초 후 자동 로그아웃됩니다.`);
+                    }
+                }, 10000); // 10초마다 체크
+            } else {
+                log('ℹ️ 로그인 상태가 아님 - 세션 타임아웃 비활성화');
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSessionTimeout);
+        } else {
+            initSessionTimeout();
+        }
+    </script>
+</body>
+</html>

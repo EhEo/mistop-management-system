@@ -3,6 +3,9 @@ const SESSION_TIMEOUT = 30 * 60 * 1000;
 let timeoutId = null;
 let lastActivity = Date.now();
 
+// 디버그 모드 (개발 중에만 true로 설정)
+const DEBUG_MODE = false;
+
 // 활동 감지 함수
 function resetSessionTimer() {
     lastActivity = Date.now();
@@ -15,6 +18,10 @@ function resetSessionTimer() {
         // 타임아웃 발생
         handleSessionTimeout();
     }, SESSION_TIMEOUT);
+    
+    if (DEBUG_MODE) {
+        console.log('⏱️ 세션 타이머 리셋됨. 30분 후 자동 로그아웃');
+    }
 }
 
 // 세션 타임아웃 처리
@@ -39,6 +46,10 @@ function initSessionTimeout() {
     
     // 로그인 상태일 때만 타이머 시작
     if (token) {
+        if (DEBUG_MODE) {
+            console.log('✅ 세션 타임아웃 시스템 초기화됨 (30분)');
+        }
+        
         // 초기 타이머 설정
         resetSessionTimer();
         
@@ -55,6 +66,11 @@ function initSessionTimeout() {
         setInterval(() => {
             const elapsed = Date.now() - lastActivity;
             
+            if (DEBUG_MODE) {
+                const minutes = Math.floor(elapsed / 60000);
+                console.log(`📊 비활성 시간: ${minutes}분`);
+            }
+            
             // 29분 경과 시 경고
             if (elapsed > 29 * 60 * 1000 && elapsed < SESSION_TIMEOUT) {
                 const remaining = Math.ceil((SESSION_TIMEOUT - elapsed) / 1000);
@@ -66,6 +82,10 @@ function initSessionTimeout() {
                 }
             }
         }, 60000); // 1분마다 체크
+    } else {
+        if (DEBUG_MODE) {
+            console.log('ℹ️ 로그인 상태가 아님 - 세션 타임아웃 비활성화');
+        }
     }
 }
 
